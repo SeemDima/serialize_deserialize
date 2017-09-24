@@ -25,32 +25,30 @@ struct serializer {
         const uint8_t *ptr = reinterpret_cast<const uint8_t *>(&obj); //ptr - is pointer to 1 byte of info
 
         std::ostream_iterator<uint8_t> oi(os);
-        if (CHECK_BYTE)
-            os << uint8_t(BASIC);
+        os << uint8_t(BASIC);
 
         std::copy(ptr, ptr + sizeof(T), oi); //побайтовое копирование
     }
     template <typename T>
     static void apply(const std::vector<T> &obj, std::ostream &os) {
-        if (CHECK_BYTE)
-            os << uint8_t(DATA_TYPE::VECTOR);
+        os << uint8_t(DATA_TYPE::VECTOR);
+        os << uint32_t(obj.size());
         for (auto it:obj)
         {
             apply(it, os);
         }
     }
-    /*
     template <typename T, typename U>
     static void apply(const std::map<T,U> &obj, std::ostream &os) {
         if (CHECK_BYTE)
             os << uint8_t(DATA_TYPE::MAP);
-        for (std::map<T, U>::iterator it = obj.begin(); it < obj.end(); ++it)
+        for (auto& it : obj)
         {
-            apply(it->first, os);
-            apply(it->second, os);
+            apply(it.first, os);
+            apply(it.second, os);
         }
     }
-    */
+
 
 };
 
@@ -78,14 +76,15 @@ struct deserializer {
 
     template <typename T>
     static void apply(std::vector<T> &val, std::istream &is) {
-        if (CHECK_BYTE)
-        {
-            uint8_t check;
-            is >> check;
-            if (check != DATA_TYPE::VECTOR)
-                throw VectorDeserializationException();
-        }
-        while (is.peek() != std::ifstream::traits_type::eof())
+
+        uint8_t check;
+        is >> check;
+        if (check != DATA_TYPE::VECTOR)
+            throw VectorDeserializationException();
+        uint32_t vec_size;
+        is >> vec_size;
+        while (is.peek() != std::ifstream::traits_type::eof() &&
+               val.size() != size_t(vec_size))
         {
             T temp_value;
             apply(temp_value, is);
