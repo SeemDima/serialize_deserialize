@@ -3,3 +3,6 @@ build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/Makefile.Release
 build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/Makefile
 build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/Makefile.Debug
 serialize_deserialize/serialize_deserialize.pro.user
+build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/test.ser
+build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/debug/serialize_deserialize.exe
+build-serialize_deserialize-Desktop_Qt_5_5_1_MinGW_32bit-Debug/debug/main.o

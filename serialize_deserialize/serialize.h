@@ -2,7 +2,7 @@
 #define SERIALIZE_H
 #pragma once
 
-//#include "deserialize_exception.h"
+#include "deserialize_exception.h"
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -39,6 +39,7 @@ struct serializer {
             apply(it, os);
         }
     }
+    /*
     template <typename T, typename U>
     static void apply(const std::map<T,U> &obj, std::ostream &os) {
         if (CHECK_BYTE)
@@ -49,10 +50,11 @@ struct serializer {
             apply(it->second, os);
         }
     }
+    */
 
 };
 
-///////////////////////////////////////////////////////////////////////
+// ####################################### deserialization #######################################
 
 
 struct deserializer {
@@ -109,7 +111,7 @@ struct deserializer {
     }
 };
 
-///////////////////////////////////////////////////////////////////////
+// ####################################### inline functions #######################################
 
 template <typename T>
 inline void serialize(const T &obj, std::ostream &os)
@@ -128,6 +130,8 @@ inline void serialize(const std::map<T1,T2> &obj, std::ostream &os)
 {
     serializer::apply(obj, os);
 }
+
+
 
 template <typename T>
 inline void deserialize(T &obj, std::istream &is)
