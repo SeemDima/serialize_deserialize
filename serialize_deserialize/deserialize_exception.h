@@ -18,4 +18,9 @@ class MapDeserializationException :public DeserializeException
 public :const char *what() const noexcept {return "error of map deserialization";}
 };
 
+class StringDeserializationException :public DeserializeException
+{
+public :const char *what() const noexcept {return "error of string deserialization";}
+};
+
 #endif // DESERIALIZE_EXCEPTION_H

@@ -8,14 +8,15 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <string>
 
 enum DATA_TYPE {
     BASIC,
     VECTOR,
     MAP,
+    STRING,
     CLASS
 };
-//template <class C>
 
 struct serializer {
     template <typename T>
@@ -46,8 +47,15 @@ struct serializer {
             apply(it.second, os);
         }
     }
-
-
+    static void apply(const std::string &obj, std::ostream &os) {
+        os << uint8_t(DATA_TYPE::STRING);
+        os << uint32_t(obj.size() + 1);
+        const char* char_str = obj.c_str(); //return char[] with '\0' at the end
+        for (size_t i=0; i <= obj.size(); ++i) // <= because \0 is at array[obj.size()]
+        {
+            apply(char_str[i], os);
+        }
+    }
 };
 
 // ####################################### deserialization #######################################
@@ -106,6 +114,26 @@ struct deserializer {
             val.insert(temp_pair);
         }
     }
+    static void apply(std::string &val, std::istream &is) {
+        uint8_t check;
+        is >> check;
+        if (check != DATA_TYPE::STRING)
+            throw StringDeserializationException();
+
+        uint32_t str_size;
+        is >> str_size;
+
+        char char_arr[str_size];
+        size_t counter = 0;
+        while (is.peek() != std::ifstream::traits_type::eof()&&
+               counter < size_t(str_size))
+        {
+            apply(char_arr[counter], is);
+            ++counter;
+        }
+        std::string temp_str(char_arr);
+        val = temp_str;
+    }
 };
 
 // ####################################### inline functions #######################################
@@ -128,6 +156,12 @@ inline void serialize(const std::map<T1,T2> &obj, std::ostream &os)
     serializer::apply(obj, os);
 }
 
+template <typename T1, typename T2>
+inline void serialize(const std::string &obj, std::ostream &os)
+{
+    serializer::apply(obj, os);
+}
+
 
 
 template <typename T>
@@ -142,4 +176,14 @@ inline void deserialize(std::vector<T> &obj, std::istream &is)
     return deserializer::apply(obj, is);
 }
 
+template <typename T, typename U>
+inline void deserialize(std::map<T, U> &obj, std::istream &is)
+{
+    return deserializer::apply(obj, is);
+}
+
+inline void deserialize(std::string &obj, std::istream &is)
+{
+    return deserializer::apply(obj, is);
+}
 #endif // SERIALIZE_H
