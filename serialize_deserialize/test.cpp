@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 #include "serialize.h"
+#include "deserialize_exception.h"
 
 TEST(serialization_test, basic_data_type)
 {
@@ -61,6 +62,7 @@ TEST(serialization_test, vector_data_type)
     }
     for (size_t i=0; i < vecB.size(); ++i)
     {
+
         if (vecB.at(i) != vecA.at(i))
         {
             FAIL();
@@ -76,8 +78,11 @@ TEST(serialization_test, map_data_type)
     mapA.insert(std::pair<char, int>(1, 3));
     mapA.insert(std::pair<char, int>(2, 5));
     mapA.insert(std::pair<char, int>(3, 7));
+    std::map<char, int> mapA_empty;
 
     serialize(mapA, ofs);
+    serialize(mapA_empty, ofs);
+
 
     ofs.close();
 
@@ -85,10 +90,11 @@ TEST(serialization_test, map_data_type)
     ifs >> std::noskipws;
 
     std::map<char, int> mapB;
-
+    std::map<char, int> mapB_prob_empty;
 
     try {
         deserialize(mapB, ifs);
+        deserialize(mapB_prob_empty, ifs);
     }
     catch (DeserializeException &exc)
     {
@@ -103,7 +109,8 @@ TEST(serialization_test, map_data_type)
             FAIL();
         }
     }
-
+    if (mapB_prob_empty.size() != 0)
+        FAIL();
 }
 
 TEST(serialization_test, string_data_type)
@@ -141,4 +148,28 @@ TEST(serialization_test, string_data_type)
     if (strA1 != strB1 || strA2 != strB2 || strA3 != strB3)
         FAIL();
 
+}
+
+TEST(serialization_test, exceptions)
+{
+    std::ofstream ofs("test.ser", std::ofstream::out | std::ofstream::binary);
+
+
+    int intA = 56;
+    std::string strB("str example");
+    std::map<char, int> mapB;
+    std::vector<int> vecB;
+
+    serialize(intA, ofs);
+    serialize(intA, ofs);
+    serialize(intA, ofs);
+
+    ofs.close();
+
+    std::ifstream ifs("test.ser", std::ifstream::in | std::ofstream::binary);
+    ifs >> std::noskipws;
+
+    ASSERT_THROW(deserialize(strB, ifs), StringDeserializationException);
+    ASSERT_THROW(deserialize(vecB, ifs), VectorDeserializationException);
+    ASSERT_THROW(deserialize(mapB, ifs), MapDeserializationException);
 }

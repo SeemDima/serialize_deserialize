@@ -49,9 +49,9 @@ struct serializer {
     }
     static void apply(const std::string &obj, std::ostream &os) {
         os << uint8_t(DATA_TYPE::STRING);
-        os << uint32_t(obj.size() + 1);
+        os << uint32_t(obj.size());
         const char* char_str = obj.c_str(); //return char[] with '\0' at the end
-        for (size_t i=0; i <= obj.size(); ++i) // <= because \0 is at array[obj.size()]
+        for (size_t i=0; i < obj.size(); ++i) // <= because \0 is at array[obj.size()]
         {
             apply(char_str[i], os);
         }
@@ -80,6 +80,8 @@ struct deserializer {
     template <typename T>
     static void apply(std::vector<T> &val, std::istream &is) {
 
+        //val.clear();
+
         uint8_t check;
         is >> check;
         if (check != DATA_TYPE::VECTOR)
@@ -88,15 +90,20 @@ struct deserializer {
         uint32_t vec_size;
         is >> vec_size;
         while (is.peek() != std::ifstream::traits_type::eof() &&
-               val.size() != size_t(vec_size))
+               vec_size > 0)
+               //val.size() != size_t(vec_size))
         {
             T temp_value;
             apply(temp_value, is);
             val.push_back(temp_value);
+            --vec_size;
         }
     }
     template <typename T, typename U>
     static void apply(std::map<T, U> &val, std::istream &is) {
+
+        //val.clear();
+
         uint8_t check;
         is >> check;
         if (check != DATA_TYPE::MAP)
@@ -105,13 +112,15 @@ struct deserializer {
         uint32_t map_size;
         is >> map_size;
 
-        while (is.peek() != std::ifstream::traits_type::eof()&&
-               val.size() != size_t(map_size))
+        while (is.peek() != std::ifstream::traits_type::eof() &&
+               map_size > 0)
+               //val.size() != size_t(map_size))
         {
             std::pair<T, U> temp_pair;
             apply(temp_pair.first, is);
             apply(temp_pair.second, is);
             val.insert(temp_pair);
+            --map_size;
         }
     }
     static void apply(std::string &val, std::istream &is) {
@@ -123,16 +132,15 @@ struct deserializer {
         uint32_t str_size;
         is >> str_size;
 
-        char char_arr[str_size];
+        char temp_char;
         size_t counter = 0;
         while (is.peek() != std::ifstream::traits_type::eof()&&
                counter < size_t(str_size))
         {
-            apply(char_arr[counter], is);
+            apply(temp_char, is);
+            val.push_back(temp_char);
             ++counter;
         }
-        std::string temp_str(char_arr);
-        val = temp_str;
     }
 };
 
